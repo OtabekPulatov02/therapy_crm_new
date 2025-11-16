@@ -1,0 +1,62 @@
+services:
+  # Backend API Service
+  - type: web
+    name: therapy-crm-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: cd backend && pip install poetry && poetry install --no-dev
+    startCommand: cd backend && poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: therapy-crm-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: therapy-crm-redis
+          type: redis
+          property: connectionString
+      - key: ALLOWED_ORIGINS
+        value: https://therapy-crm-frontend.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MINIO_ENDPOINT
+        value: https://therapy-crm-minio.onrender.com
+      - key: MINIO_BUCKET
+        value: therapy-crm
+      - key: MINIO_ACCESS_KEY
+        value: minio
+      - key: MINIO_SECRET_KEY
+        value: minio123
+
+  # Frontend Service
+  - type: web
+    name: therapy-crm-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: therapy-crm-backend
+          type: web
+          property: host
+
+  # PostgreSQL Database
+  - type: pg
+    name: therapy-crm-db
+    region: oregon
+    plan: free
+    databaseName: therapy
+    user: crm
+
+  # Redis Cache
+  - type: redis
+    name: therapy-crm-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
