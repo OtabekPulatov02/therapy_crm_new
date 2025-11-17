@@ -1,9 +1,9 @@
 from functools import lru_cache
-from typing import List, Union
+from typing import List, Any
 import os
 
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import model_validator
 
 
 class Settings(BaseSettings):
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     minio_bucket: str = "therapy-crm"
     minio_access_key: str = "minio"
     minio_secret_key: str = "minio123"
-    allowed_origins: Union[str, List[str]] = ["http://localhost:3000"]
+    allowed_origins: List[str] = ["http://localhost:3000"]
     jwt_secret: str = "CHANGE_ME"
     jwt_algorithm: str = "HS256"
     analytics_bucket_prefix: str = "analytics"
@@ -27,23 +27,26 @@ class Settings(BaseSettings):
         # Support both DATABASE_URL and database_url
         case_sensitive = False
 
-    @field_validator("allowed_origins", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def parse_allowed_origins(cls, v):
-        if isinstance(v, str):
-            # Handle comma-separated string or single value
-            if v == "*":
-                return ["*"]
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
-
-    @field_validator("database_url", mode="before")
-    @classmethod
-    def convert_database_url(cls, v):
-        if isinstance(v, str) and v.startswith("postgresql://") and "+asyncpg" not in v:
-            # Convert postgresql:// to postgresql+asyncpg:// for asyncpg driver
-            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return v
+    def parse_env_vars(cls, values: Any) -> Any:
+        if isinstance(values, dict):
+            # Convert postgresql:// to postgresql+asyncpg://
+            if "database_url" in values:
+                db_url = values["database_url"]
+                if isinstance(db_url, str) and db_url.startswith("postgresql://") and "+asyncpg" not in db_url:
+                    values["database_url"] = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            
+            # Convert allowed_origins string to list
+            if "allowed_origins" in values:
+                origins = values["allowed_origins"]
+                if isinstance(origins, str):
+                    if origins == "*":
+                        values["allowed_origins"] = ["*"]
+                    else:
+                        values["allowed_origins"] = [o.strip() for o in origins.split(",") if o.strip()]
+        
+        return values
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
