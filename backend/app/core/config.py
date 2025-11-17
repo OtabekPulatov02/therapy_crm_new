@@ -1,8 +1,9 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Union
 import os
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     minio_bucket: str = "therapy-crm"
     minio_access_key: str = "minio"
     minio_secret_key: str = "minio123"
-    allowed_origins: List[str] = ["http://localhost:3000"]
+    allowed_origins: Union[str, List[str]] = ["http://localhost:3000"]
     jwt_secret: str = "CHANGE_ME"
     jwt_algorithm: str = "HS256"
     analytics_bucket_prefix: str = "analytics"
@@ -26,25 +27,29 @@ class Settings(BaseSettings):
         # Support both DATABASE_URL and database_url
         case_sensitive = False
 
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v):
+        if isinstance(v, str):
+            # Handle comma-separated string or single value
+            if v == "*":
+                return ["*"]
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def convert_database_url(cls, v):
+        if isinstance(v, str) and v.startswith("postgresql://") and "+asyncpg" not in v:
+            # Convert postgresql:// to postgresql+asyncpg:// for asyncpg driver
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Use DATABASE_URL from env if available (Render, Railway, etc.)
-        if "DATABASE_URL" in os.environ:
-            db_url = os.environ["DATABASE_URL"]
-            # Convert postgresql:// to postgresql+asyncpg:// for asyncpg driver
-            if db_url.startswith("postgresql://") and "+asyncpg" not in db_url:
-                self.database_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-            else:
-                self.database_url = db_url
-        # Use REDIS_URL from env if available
-        if "REDIS_URL" in os.environ:
-            self.redis_url = os.environ["REDIS_URL"]
         # Set broker_url to redis_url if not explicitly set
         if not self.broker_url:
             self.broker_url = self.redis_url
-        # Parse allowed_origins from string if needed
-        if isinstance(self.allowed_origins, str):
-            self.allowed_origins = [origin.strip() for origin in self.allowed_origins.split(",")]
 
 
 @lru_cache
