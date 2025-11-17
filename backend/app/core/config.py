@@ -30,7 +30,12 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         # Use DATABASE_URL from env if available (Render, Railway, etc.)
         if "DATABASE_URL" in os.environ:
-            self.database_url = os.environ["DATABASE_URL"]
+            db_url = os.environ["DATABASE_URL"]
+            # Convert postgresql:// to postgresql+asyncpg:// for asyncpg driver
+            if db_url.startswith("postgresql://") and "+asyncpg" not in db_url:
+                self.database_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            else:
+                self.database_url = db_url
         # Use REDIS_URL from env if available
         if "REDIS_URL" in os.environ:
             self.redis_url = os.environ["REDIS_URL"]
