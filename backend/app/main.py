@@ -23,6 +23,17 @@ app.include_router(charts.router, prefix=settings.api_v1_prefix)
 app.include_router(reports.router, prefix=settings.api_v1_prefix)
 
 
+@app.get("/")
+async def root():
+    return {
+        "message": "Therapy CRM API",
+        "version": "0.1.0",
+        "docs": "/docs",
+        "health": "/healthz",
+        "api": settings.api_v1_prefix
+    }
+
+
 @app.get("/healthz")
 async def healthcheck():
     return {"status": "ok"}
