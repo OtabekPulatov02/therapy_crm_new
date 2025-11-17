@@ -5,7 +5,7 @@ const resources = {
   ru: {
     translation: {
       common: {
-        appTitle: "therapy.uz CRM",
+        appTitle: "Проекты therapy",
         uploadData: "Загрузить данные",
         uploadDocs: "Добавить документ",
         quickReports: "Быстрый доступ к отчётам",
@@ -61,7 +61,7 @@ const resources = {
   uz: {
     translation: {
       common: {
-        appTitle: "therapy.uz CRM",
+        appTitle: "Loyihalar therapy",
         uploadData: "Maʼlumotlarni yuklash",
         uploadDocs: "Hujjat qoʻshish",
         quickReports: "Hisobotlarga tezkor kirish",
@@ -117,7 +117,7 @@ const resources = {
   en: {
     translation: {
       common: {
-        appTitle: "therapy.uz CRM",
+        appTitle: "Projects therapy",
         uploadData: "Upload Data",
         uploadDocs: "Add Document",
         quickReports: "Quick access to reports",
