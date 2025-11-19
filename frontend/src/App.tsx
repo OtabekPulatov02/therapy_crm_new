@@ -7,15 +7,19 @@ import {
   Text,
   Select,
   Link,
+  Button,
 } from "@chakra-ui/react";
 import { AddIcon } from "@chakra-ui/icons";
 import { BrowserRouter, NavLink, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "./contexts/AuthContext";
 import FiltersBar from "./components/FiltersBar";
 import DataPage from "./pages/DataPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import ChartsPage from "./pages/ChartsPage";
 import ReportsPage from "./pages/ReportsPage";
+import LoginPage from "./pages/LoginPage";
 
 const navItems = [
   { key: "nav.data", path: "/data" },
@@ -26,6 +30,7 @@ const navItems = [
 
 function Layout() {
   const { t, i18n } = useTranslation();
+  const { logout } = useAuth();
 
   return (
     <Container maxW="7xl" py={6}>
@@ -43,6 +48,14 @@ function Layout() {
             <option value="uz">UZ</option>
             <option value="en">EN</option>
           </Select>
+          <Button
+            size="sm"
+            variant="outline"
+            colorScheme="brand"
+            onClick={logout}
+          >
+            {t("login.logout")}
+          </Button>
           <IconButton aria-label="Notifications" icon={<AddIcon />} variant="outline" />
         </HStack>
       </Flex>
@@ -71,11 +84,35 @@ function Layout() {
   );
 }
 
+function ProtectedLayout() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <Container maxW="7xl" py={6} centerContent>
+        <Text>Загрузка...</Text>
+      </Container>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Layout />;
+}
+
 function App() {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
+        <Route
+          path="/login"
+          element={isLoading ? <Text>Загрузка...</Text> : isAuthenticated ? <Navigate to="/data" replace /> : <LoginPage />}
+        />
+        <Route element={<ProtectedLayout />}>
           <Route index element={<Navigate to="/data" replace />} />
           <Route path="/data" element={<DataPage />} />
           <Route path="/analysis" element={<AnalysisPage />} />
