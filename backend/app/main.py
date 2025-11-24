@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api.routes import datasets, analysis, charts, reports, projects
+from app.api.routes import datasets, analysis, charts, reports, projects, google_sheets
 
 settings = get_settings()
 
@@ -21,6 +21,7 @@ app.include_router(datasets.router, prefix=settings.api_v1_prefix)
 app.include_router(analysis.router, prefix=settings.api_v1_prefix)
 app.include_router(charts.router, prefix=settings.api_v1_prefix)
 app.include_router(reports.router, prefix=settings.api_v1_prefix)
+app.include_router(google_sheets.router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

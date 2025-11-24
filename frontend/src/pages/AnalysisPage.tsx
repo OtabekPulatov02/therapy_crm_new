@@ -22,7 +22,15 @@ export default function AnalysisPage() {
               <Text>• Filters & groups</Text>
               <Text>• Export ready</Text>
             </VStack>
-            <Button mt={4} colorScheme="brand" size="sm">
+            <Button 
+              mt={4} 
+              colorScheme="brand" 
+              size="sm"
+              onClick={() => {
+                // Показываем уведомление о запуске анализа
+                alert(`${t(key)}: ${t("analysis.run")}\n\nФункционал анализа будет доступен после подключения backend сервиса.`);
+              }}
+            >
               {t("analysis.run")}
             </Button>
           </Box>

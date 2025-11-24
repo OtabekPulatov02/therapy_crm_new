@@ -1,11 +1,33 @@
-import { Box, Button, Text, VStack, List, ListItem, ListIcon } from "@chakra-ui/react";
+import { Box, Button, Text, VStack, List, ListItem, ListIcon, Input } from "@chakra-ui/react";
 import { AddIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@chakra-ui/react";
+import { useRef } from "react";
 
 const formats = ["CSV", "XLS/XLSX", "SQL", "API"];
 
 export default function DataUploadCTA() {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
+
+  const handleUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      toast({
+        status: "success",
+        title: "Файл выбран",
+        description: `${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+      });
+      // Здесь можно добавить логику загрузки файла на сервер
+      // Пока просто показываем уведомление
+    }
+  };
+
   return (
     <Box borderWidth="1px" borderRadius="xl" p={6} bg="gray.50">
       <VStack align="start" spacing={4}>
@@ -21,7 +43,14 @@ export default function DataUploadCTA() {
             </ListItem>
           ))}
         </List>
-        <Button leftIcon={<AddIcon />} colorScheme="brand">
+        <Input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.xls,.xlsx"
+          onChange={handleFileChange}
+          display="none"
+        />
+        <Button leftIcon={<AddIcon />} colorScheme="brand" onClick={handleUpload}>
           {t("common.uploadData")}
         </Button>
       </VStack>
