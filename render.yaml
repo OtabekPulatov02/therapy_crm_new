@@ -18,7 +18,7 @@ services:
           type: redis
           property: connectionString
       - key: ALLOWED_ORIGINS
-        value: https://therapy-crm-frontend.onrender.com
+        value: https://therapy-crm-front.onrender.com
       - key: JWT_SECRET
         generateValue: true
       - key: MINIO_ENDPOINT
