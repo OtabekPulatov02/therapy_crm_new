@@ -10,8 +10,19 @@ import {
   PatientData,
 } from "../utils/googleSheets";
 import { useRef } from "react";
+import { useFilters } from "../store/filters";
 
-const GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/1UfsqhA6xln9-fZJWihgeT5OxxY-2gPGyWhLhMUBJnxY/edit?usp=sharing";
+// Маппинг проектов к Google Sheets URL
+const PROJECT_SHEETS_MAP: Record<string, string> = {
+  "550e8400-e29b-41d4-a716-446655440001": "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing", // PRIM-01-08
+  "550e8400-e29b-41d4-a716-446655440002": "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing", // FZ-2020103185
+  "550e8400-e29b-41d4-a716-446655440003": "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing", // FZ-2020103184
+  "550e8400-e29b-41d4-a716-446655440004": "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing", // АL-492598621
+  "550e8400-e29b-41d4-a716-446655440005": "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing", // FL-9524114982
+};
+
+// URL по умолчанию
+const DEFAULT_GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/1tjx8Q1uarTiZDYhCPraci_3twGR26GfwrXok1-iHuAA/edit?usp=sharing";
 
 type MedicalDashboardChartsProps = {
   customData?: PatientData[];
@@ -19,17 +30,27 @@ type MedicalDashboardChartsProps = {
 
 export default function MedicalDashboardCharts({ customData }: MedicalDashboardChartsProps) {
   const { t } = useTranslation();
+  const selectedProject = useFilters((state) => state.project);
   const [patients, setPatients] = useState<PatientData[]>(customData || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [skipAutoLoad, setSkipAutoLoad] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Получаем URL для выбранного проекта
+  const getGoogleSheetsUrl = () => {
+    if (selectedProject && PROJECT_SHEETS_MAP[selectedProject]) {
+      return PROJECT_SHEETS_MAP[selectedProject];
+    }
+    return DEFAULT_GOOGLE_SHEETS_URL;
+  };
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const sheetId = extractSheetId(GOOGLE_SHEETS_URL);
+      const sheetsUrl = getGoogleSheetsUrl();
+      const sheetId = extractSheetId(sheetsUrl);
       if (!sheetId) {
         throw new Error("Не удалось извлечь ID таблицы из URL. Проверьте правильность ссылки.");
       }
@@ -135,12 +156,12 @@ export default function MedicalDashboardCharts({ customData }: MedicalDashboardC
       setError(null);
       return;
     }
-    // Иначе автоматически загружаем данные при монтировании компонента
+    // Иначе автоматически загружаем данные при монтировании компонента или при смене проекта
     // Только если пользователь не пропустил автоматическую загрузку
     if (!skipAutoLoad) {
       loadData();
     }
-  }, [customData, skipAutoLoad]);
+  }, [customData, skipAutoLoad, selectedProject]); // Добавили selectedProject в зависимости
 
   if (loading) {
     return (

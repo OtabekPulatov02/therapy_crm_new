@@ -7,6 +7,7 @@ import DataUploadCTA from "../components/DataUploadCTA";
 import ChartsPreview from "../components/ChartsPreview";
 import MedicalDashboardCharts from "../components/MedicalDashboardCharts";
 import DocumentUpload, { DocumentRecord } from "../components/DocumentUpload";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 export default function DataPage() {
   const { t } = useTranslation();
@@ -38,18 +39,28 @@ export default function DataPage() {
 
   return (
     <>
-      <DashboardCards />
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+      <ErrorBoundary>
+        <DashboardCards />
+      </ErrorBoundary>
+      <ErrorBoundary>
         <DataUploadCTA />
-        <ChartsPreview />
-      </SimpleGrid>
+      </ErrorBoundary>
+
+      {/* Графики проектов */}
+      <Box mt={6}>
+        <ErrorBoundary>
+          <ChartsPreview />
+        </ErrorBoundary>
+      </Box>
 
       {/* Медицинские графики из Google Sheets */}
       <Box mt={6}>
         <Text fontSize="xl" fontWeight="bold" mb={4} color="brand.600">
           {t("charts.medicalAnalytics")}
         </Text>
-        <MedicalDashboardCharts />
+        <ErrorBoundary>
+          <MedicalDashboardCharts />
+        </ErrorBoundary>
       </Box>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mt={6}>

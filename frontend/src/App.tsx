@@ -15,6 +15,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./contexts/AuthContext";
 import FiltersBar from "./components/FiltersBar";
+import ErrorBoundary from "./components/ErrorBoundary";
 import DataPage from "./pages/DataPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import ChartsPage from "./pages/ChartsPage";
@@ -75,7 +76,9 @@ function Layout() {
         ))}
       </HStack>
 
-      <FiltersBar />
+      <ErrorBoundary>
+        <FiltersBar />
+      </ErrorBoundary>
 
       <Box mt={4}>
         <Outlet />
@@ -106,21 +109,23 @@ function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={isLoading ? <Text>Загрузка...</Text> : isAuthenticated ? <Navigate to="/data" replace /> : <LoginPage />}
-        />
-        <Route element={<ProtectedLayout />}>
-          <Route index element={<Navigate to="/data" replace />} />
-          <Route path="/data" element={<DataPage />} />
-          <Route path="/analysis" element={<AnalysisPage />} />
-          <Route path="/charts" element={<ChartsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/login"
+            element={isLoading ? <Text>Загрузка...</Text> : isAuthenticated ? <Navigate to="/data" replace /> : <LoginPage />}
+          />
+          <Route element={<ProtectedLayout />}>
+            <Route index element={<Navigate to="/data" replace />} />
+            <Route path="/data" element={<DataPage />} />
+            <Route path="/analysis" element={<AnalysisPage />} />
+            <Route path="/charts" element={<ChartsPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
